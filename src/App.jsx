@@ -6,8 +6,8 @@ import shuffle from './knuth-fisher-yates-shuffle';
 export default function App() {
     const [data, setData] = React.useState([]);
     const [score, setScore] = React.useState(0);
+    const [best, setBest] = React.useState(0);
     const [level, setLevel] = React.useState(1);
-    const [cards, setCards] = React.useState([]);
     const [moves, setMoves] = React.useState([]);
 
     React.useEffect(() => {
@@ -22,37 +22,34 @@ export default function App() {
     }, [level]);
 
     function play(id) {
-        console.log(moves);
         if (moves.includes(id)) { // Player failed, reset game
             setLevel(1);
             setScore(0);
+            setMoves([]);
         } else {
             setMoves(oldMoves => [...oldMoves, id]);
             setScore(oldScore => oldScore + 1);
-            shuffleCards();
+            setBest(oldBest => score > oldBest ? score : oldBest);
         }
 
-        if (moves.length === cards.length) {
+        if (moves.length === cards.length - 1) { // Moves does not get updated fast enough so we have to do this...
             setLevel(oldLevel => oldLevel + 1);
             setMoves([]);
         }
-    }
 
-    console.log(moves);
+        shuffleCards();
+    }
     
     function shuffleCards() {
         setData(shuffle(data));
-        setCards(data.map(card => <Card key={card.id} name={card.name} image={card.image} play={() => play(card.id)} />));
     }
 
-    React.useEffect(() => {
-        setCards(data.map(card => <Card key={card.id} name={card.name} image={card.image} play={() => play(card.id)} />));
-    }, [data]);
+    const cards = data.map(card => <Card key={card.id} name={card.name} image={card.image} play={() => play(card.id)} />);
 
     return (
         <div>
-            <Header score={score} />
-            <div>Choose your next Monster! Level {level}</div>
+            <Header score={score} best={best} />
+            <div className="level">Choose your next Monster! Level {level}</div>
             <div className="cards">
                 {cards}
             </div>
