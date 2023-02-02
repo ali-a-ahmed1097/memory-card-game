@@ -8,6 +8,7 @@ export default function App() {
     const [score, setScore] = React.useState(0);
     const [level, setLevel] = React.useState(1);
     const [cards, setCards] = React.useState([]);
+    const [moves, setMoves] = React.useState([]);
 
     React.useEffect(() => {
         async function getMonsters() {
@@ -20,21 +21,37 @@ export default function App() {
 
     }, [level]);
 
+    function play(id) {
+        console.log(moves);
+        if (moves.includes(id)) { // Player failed, reset game
+            setLevel(1);
+            setScore(0);
+        } else {
+            setMoves(oldMoves => [...oldMoves, id]);
+            setScore(oldScore => oldScore + 1);
+            shuffleCards();
+        }
+
+        if (moves.length === cards.length) {
+            setLevel(oldLevel => oldLevel + 1);
+            setMoves([]);
+        }
+    }
+
+    console.log(moves);
+    
     function shuffleCards() {
         setData(shuffle(data));
-        setCards(data.map(card => <Card key={card.id} name={card.name} image={card.image} shuffle={shuffleCards} />));
+        setCards(data.map(card => <Card key={card.id} name={card.name} image={card.image} play={() => play(card.id)} />));
     }
 
     React.useEffect(() => {
-        setCards(data.map(card => <Card key={card.id} name={card.name} image={card.image} shuffle={shuffleCards} />));
+        setCards(data.map(card => <Card key={card.id} name={card.name} image={card.image} play={() => play(card.id)} />));
     }, [data]);
-
-    // const cards = data.map((card, index) => <Card key={index} index={index} data={data} shuffle={shuffleCards} />);
 
     return (
         <div>
             <Header score={score} />
-            <button onClick={() => setLevel(l => l + 1)}>Increase level</button>
             <div>Choose your next Monster! Level {level}</div>
             <div className="cards">
                 {cards}
